@@ -66,6 +66,29 @@ map<int, map<int, string> > get_data()
     return (philos);
 }
 
+void write_duration(int size, int last, int start, int end, string action)
+{
+    float diff = size / (float)last;
+    int start_pos = start * diff;
+    int end_pos = min(size, (int)(end * diff));
+    int width = end_pos - start_pos;
+
+    if (!width)
+        return ;
+    if (!action.compare("time"))
+        printf("%-*d", width, start);
+    else if (!action.compare("time_bar"))
+        printf("⎸%*c", width - 1, ' ');
+    else if (!action.compare("empty"))
+        printf("%*c", width, ' ');
+    else if (!action.compare("is eating"))
+        cout << eat(width);
+    else if (!action.compare("is sleeping"))
+        cout << sleep(width);
+    else if (!action.compare("is thinking"))
+        cout << think(width);
+}
+
 int	main(int argc, char **argv)
 {
     struct winsize w;
@@ -78,60 +101,70 @@ int	main(int argc, char **argv)
     map<int, map<int, string> > philos = get_data();
     map<int, map<int, string> >::iterator philos_itr;
 
-    int end_time;
+    if (!philos.size())
+        exit(EXIT_FAILURE);
+    int end_time = 0;
     for (philos_itr = philos.begin(); philos_itr != philos.end(); ++philos_itr)
     {
         map<int, string> actions;
 
         actions = philos_itr->second;
-        if (philos_itr == philos.begin())
-            end_time = actions.rbegin()->first;
-        else
-            end_time = max(actions.rbegin()->first, end_time);
+        end_time = max(actions.rbegin()->first, end_time);
+    }
+
+    {
+        int step = 100;
+
+        while ((size / (float)end_time) * step < to_string(end_time).length() + 3)
+            step *= 2;
+
+        int parts = end_time / step;
+        int current;
+
+        current = 0;
+        for (size_t i = 0; i < parts; i++)
+        {
+            write_duration(size, end_time, current, current + step, "time");
+            current += step;
+        }
+        printf("\n");
+        current = 0;
+        for (size_t i = 0; i < parts; i++)
+        {
+            write_duration(size, end_time, current, current + step, "time_bar");
+            current += step;
+        }
+        printf("\n");
     }
 
     for (philos_itr = philos.begin(); philos_itr != philos.end(); ++philos_itr)
     {
         map<int, string> actions;
         map<int, string>::iterator actions_itr;
-        int actual;
-        int duration;
-        int action_size;
-        int write = 0;
 
         actions = philos_itr->second;
         actions_itr = actions.begin();
 
+        int actual = 0;
+
+        write_duration(size, end_time, actual, actions_itr->first, "empty");
         actual = actions_itr->first;
         action = actions_itr->second;
-
-        action_size = actual * size / end_time;
-        cout << space(action_size);
-
         while (++actions_itr != actions.end())
         {
-            duration = actions_itr->first - actual;
-            action_size = roundf(duration * size / (float)end_time);
-            if (!action.compare("is eating"))
-                cout << eat(action_size);
-            else if (!action.compare("is sleeping"))
-                cout << sleep(action_size);
-            else if (!action.compare("is thinking"))
-                cout << think(action_size);
+            write_duration(size, end_time, actual, actions_itr->first, action);
 
             actual = actions_itr->first;
             action = actions_itr->second;
         }
-        duration = end_time - actual;
-        action_size = roundf(duration * size / (float)end_time);
-        if (!action.compare("is eating"))
-            cout << eat(action_size);
-        else if (!action.compare("is sleeping"))
-            cout << sleep(action_size);
-        else if (!action.compare("is thinking"))
-            cout << think(action_size);
+        write_duration(size, end_time, actual, end_time, action);
         cout << endl;
     }
+    cout << endl;
+    cout << eat(1) << " eat  ";
+    cout << sleep(1) << " sleep  ";
+    cout << think(1) << " think";
+    cout << endl;
     return (0);
 }
 

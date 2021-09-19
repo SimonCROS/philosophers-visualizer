@@ -1,70 +1,11 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   main.c                                             :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: scros <scros@student.42lyon.fr>            +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/07/30 22:23:33 by scros             #+#    #+#             */
-/*   Updated: 2021/08/02 12:32:42 by scros            ###   ########lyon.fr   */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include <iostream>
-#include <string>
-#include <map>
 
-#include <sys/ioctl.h>
 #include <unistd.h>
 #include <stdio.h>
-#include <math.h>
+
+#include "visualizer.hpp"
 
 using namespace std;
-
-string space(int n)
-{
-    return string(n, ' ');
-}
-
-string eat(int n)
-{
-    return "\033[48;5;203m" + string(n, ' ') + "\033[0m";
-}
-
-string sleep(int n)
-{
-    return "\033[48;5;039m" + string(n, ' ') + "\033[0m";
-}
-
-string think(int n)
-{
-    return "\033[48;5;077m" + string(n, ' ') + "\033[0m";
-}
-
-map<int, map<int, string> > get_data()
-{
-    int time;
-    int philo;
-    char actionc[20];
-    string action;
-    map<int, map<int, string> > philos;
-
-    while (scanf("%d %d %[^\n]\n", &time, &philo, actionc) != EOF)
-    {
-        action = actionc;
-        if (!action.compare("has taken a fork"))
-            continue ;
-        if (!philos.count(philo))
-        {
-            map<int, string> actions;
-            actions.insert(make_pair(time, action));
-            philos.insert(make_pair(philo, actions));
-        }
-        else
-            philos.at(philo).insert(make_pair(time, action));
-    }
-    return (philos);
-}
 
 void write_duration(int size, int last, int start, int end, string action)
 {
@@ -89,115 +30,61 @@ void write_duration(int size, int last, int start, int end, string action)
         cout << think(width);
 }
 
-int	main(int argc, char **argv)
+int get_end(map<int, map<int, string> > philos)
 {
-    struct winsize w;
-    string action;
-    int size;
-
-    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-    size = w.ws_col;
-
-    map<int, map<int, string> > philos = get_data();
     map<int, map<int, string> >::iterator philos_itr;
+    int end;
 
-    if (!philos.size())
-        exit(EXIT_FAILURE);
-    int end_time = 0;
+    end = 0;
     for (philos_itr = philos.begin(); philos_itr != philos.end(); ++philos_itr)
     {
         map<int, string> actions;
 
         actions = philos_itr->second;
-        end_time = max(actions.rbegin()->first, end_time);
+        end = max(actions.rbegin()->first, end);
     }
-
-    {
-        int step = 100;
-
-        while ((size / (float)end_time) * step < to_string(end_time).length() + 3)
-            step *= 2;
-
-        int parts = end_time / step;
-        int current;
-
-        current = 0;
-        for (size_t i = 0; i < parts; i++)
-        {
-            write_duration(size, end_time, current, current + step, "time");
-            current += step;
-        }
-        printf("\n");
-        current = 0;
-        for (size_t i = 0; i < parts; i++)
-        {
-            write_duration(size, end_time, current, current + step, "time_bar");
-            current += step;
-        }
-        printf("\n");
-    }
-
-    for (philos_itr = philos.begin(); philos_itr != philos.end(); ++philos_itr)
-    {
-        map<int, string> actions;
-        map<int, string>::iterator actions_itr;
-
-        actions = philos_itr->second;
-        actions_itr = actions.begin();
-
-        int actual = 0;
-
-        write_duration(size, end_time, actual, actions_itr->first, "empty");
-        actual = actions_itr->first;
-        action = actions_itr->second;
-        while (++actions_itr != actions.end())
-        {
-            write_duration(size, end_time, actual, actions_itr->first, action);
-
-            actual = actions_itr->first;
-            action = actions_itr->second;
-        }
-        write_duration(size, end_time, actual, end_time, action);
-        cout << endl;
-    }
-    cout << endl;
-    cout << eat(1) << " eat  ";
-    cout << sleep(1) << " sleep  ";
-    cout << think(1) << " think";
-    cout << endl;
-    return (0);
+    return end;
 }
 
-// void show_help(FILE *file)
-// {
-//     fprintf(file, "usage: ./visualizer [-s time] [command-and-arguments]\n");
-// }
+void start(int step)
+{
+    map<int, map<int, string> > philos;
+    int size;
+    int end;
 
-// int main(int argc, char *argv[])
-// {
-//     int opt;
-//     long max_duration;
+    size = get_win_width();
 
-//     max_duration = -1;
-//     while ((opt = getopt(argc, argv, "hs:")) != EOF)
-//     {
-//         switch(opt)
-//         {
-//             case 'h':
-//                 show_help(stdout);
-//                 exit(0);
-//             case 's':
-//                 char *p;
-//                 max_duration = strtol(optarg, &p, 10);
-//                 if (!*p && max_duration > 0)                    
-//                     break;
-//             case '?':
-//                 show_help(stderr);
-//             default:
-//                 exit(1);
-//         }
-//     }
-//     cout << max_duration << endl;
-//     return 0;
-// }
+    philos = get_data(stdin);
+    if (!philos.size())
+        exit(EXIT_FAILURE);
 
+    end = get_end(philos);
+    print_rule(size, end, step);
+    print_data(size, end, philos);
+}
+
+int	main(int argc, char **argv)
+{
+    int opt;
+    int step;
+
+    step = 25;
+    while ((opt = getopt(argc, argv, "hs:")) != EOF)
+    {
+        switch(opt)
+        {
+            case 'h':
+                print_help(stdout);
+                exit(0);
+            case 's':
+                if (get_opt_int(&step))
+                    break;
+            default:
+                print_help(stderr);
+                exit(1);
+        }
+    }
+
+    start(step);
+    return (0);
+}

@@ -61,6 +61,7 @@ void start(int step)
     end = get_end(philos);
     print_rule(size, end, step);
     print_data(size, end, philos);
+    print_caption();
 }
 
 int	main(int argc, char **argv)

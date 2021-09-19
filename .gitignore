@@ -2,6 +2,7 @@
 .vscode
 philo
 philo_bonus
+visualizer
 
 ## Mlx related
 Makefile.gen

@@ -72,5 +72,5 @@ void print_caption()
 
 void print_help(FILE *file)
 {
-    fprintf(file, "usage:\n./visualiser [-s step]\n");
+    fprintf(file, "usage:\n./visualizer [-s step]\n");
 }

@@ -1,5 +1,6 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include <math.h>
 
 int get_win_width()

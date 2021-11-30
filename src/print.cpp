@@ -11,7 +11,7 @@ void print_rule(int size, int end, int step)
 
     while ((size / (float)end) * step < to_string(end).length() + 3)
         step *= 2;
-    parts = end / step;
+    parts = end / step + 1;
 
     current = 0;
     for (size_t i = 0; i < parts; i++)
@@ -19,14 +19,14 @@ void print_rule(int size, int end, int step)
         write_duration(size, end, current, current + step, "time");
         current += step;
     }
-    printf("\n");
+    cout.put('\n');
     current = 0;
     for (size_t i = 0; i < parts; i++)
     {
         write_duration(size, end, current, current + step, "time_bar");
         current += step;
     }
-    printf("\n");
+    cout.put('\n');
 }
 
 static void print_philo(int size, int end, map<int, string> actions)

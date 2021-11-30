@@ -18,11 +18,11 @@ map<int, map<int, string> > get_data(FILE *file)
         if (!philos.count(philo))
         {
             map<int, string> actions;
-            actions.insert(make_pair(time, action));
-            philos.insert(make_pair(philo, actions));
+            actions[time] = action;
+            philos[philo] = actions;
         }
         else
-            philos.at(philo).insert(make_pair(time, action));
+            philos.at(philo)[time] = action;
     }
     return (philos);
 }
